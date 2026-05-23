@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>🚽 同時うんこチャレンジ</title>
+<title>🚽 同時うんこチャレンジ 🚽</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
 <style>
 
@@ -21,22 +25,22 @@ body{
 }
 
 h1{
-    font-size:32px;
+    font-size:34px;
     margin-top:20px;
 }
 
 select{
     font-size:24px;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
+    padding:12px;
+    border-radius:12px;
+    margin-top:15px;
 }
 
 button{
-    width:80%;
-    max-width:300px;
-    font-size:28px;
-    padding:20px;
+    width:85%;
+    max-width:320px;
+    font-size:30px;
+    padding:22px;
     margin:15px 0;
     border:none;
     border-radius:20px;
@@ -55,20 +59,20 @@ button{
 
 .card{
     margin:15px auto;
-    width:85%;
-    max-width:350px;
-    border-radius:20px;
-    padding:20px;
-    font-size:32px;
+    width:88%;
+    max-width:360px;
+    border-radius:22px;
+    padding:22px;
+    font-size:34px;
     font-weight:bold;
 }
 
 .online{
-    box-shadow:0 0 20px currentColor;
+    box-shadow:0 0 25px currentColor;
 }
 
 .offline{
-    opacity:0.4;
+    opacity:0.35;
 }
 
 .red{
@@ -82,7 +86,7 @@ button{
 }
 
 .yellow{
-    background:#443300;
+    background:#4a3b00;
     color:#ffd740;
 }
 
@@ -91,15 +95,15 @@ button{
 }
 
 #hiddenMessage{
-    margin-top:30px;
-    font-size:22px;
+    margin-top:35px;
+    font-size:24px;
     opacity:0.7;
 }
 
 #success{
     display:none;
-    margin-top:30px;
-    font-size:42px;
+    margin-top:35px;
+    font-size:46px;
     color:#00ff6a;
     font-weight:bold;
     animation:flash 1s infinite;
@@ -112,6 +116,7 @@ button{
 }
 
 </style>
+
 </head>
 <body>
 
@@ -151,56 +156,62 @@ button{
 
 <script>
 
-let myActive = false;
+/* Firebase */
 
-const players = {
-    shori:{
-        name:"しょうり",
-        color:"red",
-        active:false
-    },
-    jokura:{
-        name:"城倉",
-        color:"blue",
-        active:false
-    },
-    masai:{
-        name:"まさい",
-        color:"yellow",
-        active:false
-    }
+const firebaseConfig = {
+  apiKey: "AIzaSyAvu7p1AICFiJuzJvmT_LxFUsjp0zDwDOQ",
+  authDomain: "isaac-toilet-42f74.firebaseapp.com",
+  databaseURL: "https://isaac-toilet-42f74-default-rtdb.firebaseio.com",
+  projectId: "isaac-toilet-42f74",
+  storageBucket: "isaac-toilet-42f74.firebasestorage.app",
+  messagingSenderId: "842303796255",
+  appId: "1:842303796255:web:b06e318b04994f5dee512a"
 };
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+/* 開始 */
 
 function startPoop(){
 
     const me =
         document.getElementById("playerSelect").value;
 
-    players[me].active = true;
-
-    myActive = true;
-
-    render();
+    db.ref("players/" + me).set({
+        active:true
+    });
 }
+
+/* 終了 */
 
 function endPoop(){
 
     const me =
         document.getElementById("playerSelect").value;
 
-    players[me].active = false;
-
-    myActive = false;
-
-    render();
+    db.ref("players/" + me).set({
+        active:false
+    });
 }
 
-function render(){
+/* リアルタイム監視 */
 
-    const area =
+db.ref("players").on("value", snapshot => {
+
+    const data = snapshot.val() || {};
+
+    const me =
+        document.getElementById("playerSelect").value;
+
+    const myActive =
+        data[me]?.active || false;
+
+    const playersDiv =
         document.getElementById("players");
 
-    const hidden =
+    const hiddenMessage =
         document.getElementById("hiddenMessage");
 
     const success =
@@ -208,45 +219,66 @@ function render(){
 
     if(!myActive){
 
-        area.innerHTML = "";
+        playersDiv.innerHTML = "";
 
-        hidden.style.display = "block";
+        hiddenMessage.style.display = "block";
 
         success.style.display = "none";
 
         return;
     }
 
-    hidden.style.display = "none";
+    hiddenMessage.style.display = "none";
 
     let html = "";
 
     let count = 0;
 
-    for(const key in players){
+    html += makeCard(
+        "しょうり",
+        data.shori?.active,
+        "red"
+    );
 
-        const p = players[key];
+    html += makeCard(
+        "城倉",
+        data.jokura?.active,
+        "blue"
+    );
 
-        if(p.active) count++;
+    html += makeCard(
+        "まさい",
+        data.masai?.active,
+        "yellow"
+    );
 
-        html += `
-        <div class="card ${p.color}
-            ${p.active ? 'online' : 'offline'}">
+    if(data.shori?.active) count++;
+    if(data.jokura?.active) count++;
+    if(data.masai?.active) count++;
 
-            ${p.active ? '🟢' : '⚪'}
-            ${p.name}
-
-        </div>
-        `;
-    }
-
-    area.innerHTML = html;
+    playersDiv.innerHTML = html;
 
     if(count >= 3){
         success.style.display = "block";
     }else{
         success.style.display = "none";
     }
+
+});
+
+/* カード生成 */
+
+function makeCard(name, active, color){
+
+    return `
+    <div class="card ${color}
+        ${active ? 'online' : 'offline'}">
+
+        ${active ? '🟢' : '⚪'}
+        ${name}
+
+    </div>
+    `;
 }
 
 </script>
