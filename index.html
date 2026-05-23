@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>🚽 同時うんこチャレンジ 🚽</title>
+<title>💩同時うんこ💩 🚽チャレンジ🚽</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -27,11 +27,13 @@ body{
 h1{
     margin-top:20px;
     font-size:34px;
+    line-height:1.5;
 }
 
 .subtitle{
     opacity:0.7;
     margin-bottom:30px;
+    font-size:20px;
 }
 
 .nameButton{
@@ -159,6 +161,8 @@ h1{
     color:#00ff6a;
 
     animation:flash 1s infinite;
+
+    line-height:1.6;
 }
 
 @keyframes flash{
@@ -185,10 +189,10 @@ h1{
 <div id="selectScreen">
 
     <h1>
-　　💩同時うんこ💩
-　　<br>
-　　🚽チャレンジ🚽
-　　</h1>
+        💩同時うんこ💩
+        <br>
+        🚽チャレンジ🚽
+    </h1>
 
     <div class="subtitle">
         あなたを選択
@@ -221,7 +225,11 @@ h1{
 
 <div id="gameScreen">
 
-    <h1>🚽 同時うんこチャレンジ 🚽</h1>
+    <h1>
+        💩同時うんこ💩
+        <br>
+        🚽チャレンジ🚽
+    </h1>
 
     <div id="me"></div>
 
@@ -246,9 +254,11 @@ h1{
     <div id="players"></div>
 
     <div id="success">
+
         🚨３人同時🚨
-　　　<br>
-　　　　　🎊　達成　🎊
+        <br>
+        🎊　達成　🎊
+
     </div>
 
 </div>
@@ -273,7 +283,7 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-/* プレイヤー情報 */
+/* プレイヤー名 */
 
 const names = {
     shori:"🔴 しょうり",
@@ -286,9 +296,7 @@ let me = localStorage.getItem("toiletPlayer");
 /* 自分復元 */
 
 if(me){
-
     showGame();
-
 }
 
 /* プレイヤー選択 */
@@ -305,7 +313,7 @@ function selectPlayer(player){
     showGame();
 }
 
-/* ゲーム画面 */
+/* 画面切替 */
 
 function showGame(){
 
@@ -330,8 +338,6 @@ function startPoop(){
     db.ref("players/" + me).set({
         active:true
     });
-
-    /* 切断時自動OFF */
 
     db.ref("players/" + me)
       .onDisconnect()
