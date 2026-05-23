@@ -101,11 +101,6 @@ h1{
     color:white;
 }
 
-.change{
-    background:#666;
-    color:white;
-}
-
 .card{
 
     width:88%;
@@ -200,21 +195,21 @@ h1{
     <button class="nameButton redBtn"
         onclick="selectPlayer('shori')">
 
-        🔴 しょうり
+        しょうり
 
     </button>
 
     <button class="nameButton blueBtn"
         onclick="selectPlayer('jokura')">
 
-        🔵 城倉
+        城倉
 
     </button>
 
     <button class="nameButton yellowBtn"
         onclick="selectPlayer('masai')">
 
-        🟡 まさい
+        まさい
 
     </button>
 
@@ -243,13 +238,6 @@ h1{
         onclick="endPoop()">
 
         終了
-
-    </button>
-
-    <button class="mainButton change"
-        onclick="changePlayer()">
-
-        👤 プレイヤー変更
 
     </button>
 
@@ -288,29 +276,18 @@ const db = firebase.database();
 /* 名前 */
 
 const names = {
-    shori:"🔴 しょうり",
-    jokura:"🔵 城倉",
-    masai:"🟡 まさい"
+    shori:"しょうり",
+    jokura:"城倉",
+    masai:"まさい"
 };
 
-let me = localStorage.getItem("toiletPlayer");
+let me = null;
 
-/* 初期表示 */
-
-if(me){
-    showGame();
-}
-
-/* 選択 */
+/* プレイヤー選択 */
 
 function selectPlayer(player){
 
     me = player;
-
-    localStorage.setItem(
-        "toiletPlayer",
-        player
-    );
 
     showGame();
 }
@@ -333,22 +310,34 @@ function showGame(){
         "あなた： " + names[me];
 }
 
-/* プレイヤー変更 */
+/* 名前選択へ戻る */
 
-function changePlayer(){
+function backToSelect(){
 
-    endPoop();
+    document.getElementById(
+        "gameScreen"
+    ).style.display = "none";
 
-    localStorage.removeItem(
-        "toiletPlayer"
-    );
+    document.getElementById(
+        "selectScreen"
+    ).style.display = "block";
 
-    location.reload();
+    document.getElementById(
+        "players"
+    ).innerHTML = "";
+
+    document.getElementById(
+        "success"
+    ).style.display = "none";
+
+    me = null;
 }
 
 /* 開始 */
 
 function startPoop(){
+
+    if(!me) return;
 
     db.ref("players/" + me).set({
         active:true
@@ -370,6 +359,8 @@ function endPoop(){
     db.ref("players/" + me).set({
         active:false
     });
+
+    backToSelect();
 }
 
 /* リアルタイム監視 */
@@ -403,19 +394,19 @@ db.ref("players").on("value", snapshot => {
     let count = 0;
 
     html += makeCard(
-        "🔴 しょうり",
+        "しょうり",
         data.shori?.active,
         "red"
     );
 
     html += makeCard(
-        "🔵 城倉",
+        "城倉",
         data.jokura?.active,
         "blue"
     );
 
     html += makeCard(
-        "🟡 まさい",
+        "まさい",
         data.masai?.active,
         "yellow"
     );
@@ -427,8 +418,11 @@ db.ref("players").on("value", snapshot => {
     playersDiv.innerHTML = html;
 
     if(count >= 3){
+
         success.style.display = "block";
+
     }else{
+
         success.style.display = "none";
     }
 
