@@ -25,26 +25,64 @@ body{
 }
 
 h1{
-    font-size:34px;
     margin-top:20px;
+    font-size:34px;
 }
 
-select{
-    font-size:24px;
-    padding:12px;
-    border-radius:12px;
-    margin-top:15px;
+.subtitle{
+    opacity:0.7;
+    margin-bottom:30px;
 }
 
-button{
+.nameButton{
+
     width:85%;
     max-width:320px;
+
     font-size:30px;
-    padding:22px;
-    margin:15px 0;
-    border:none;
-    border-radius:20px;
     font-weight:bold;
+
+    padding:24px;
+
+    margin:15px auto;
+
+    border:none;
+    border-radius:24px;
+
+    display:block;
+
+    color:white;
+}
+
+.redBtn{
+    background:#c62828;
+}
+
+.blueBtn{
+    background:#1565c0;
+}
+
+.yellowBtn{
+    background:#f9a825;
+    color:black;
+}
+
+.mainButton{
+
+    width:85%;
+    max-width:340px;
+
+    font-size:32px;
+    font-weight:bold;
+
+    padding:24px;
+
+    margin:20px auto;
+
+    border:none;
+    border-radius:24px;
+
+    display:block;
 }
 
 .start{
@@ -58,11 +96,16 @@ button{
 }
 
 .card{
-    margin:15px auto;
+
     width:88%;
     max-width:360px;
-    border-radius:22px;
-    padding:22px;
+
+    margin:18px auto;
+
+    padding:24px;
+
+    border-radius:24px;
+
     font-size:34px;
     font-weight:bold;
 }
@@ -90,22 +133,31 @@ button{
     color:#ffd740;
 }
 
+#gameScreen{
+    display:none;
+}
+
 #players{
     margin-top:30px;
 }
 
 #hiddenMessage{
-    margin-top:35px;
+    margin-top:30px;
     font-size:24px;
     opacity:0.7;
 }
 
 #success{
+
     display:none;
+
     margin-top:35px;
-    font-size:46px;
-    color:#00ff6a;
+
+    font-size:48px;
     font-weight:bold;
+
+    color:#00ff6a;
+
     animation:flash 1s infinite;
 }
 
@@ -115,6 +167,12 @@ button{
     100%{opacity:1;}
 }
 
+#me{
+    font-size:24px;
+    margin-top:10px;
+    opacity:0.8;
+}
+
 </style>
 
 </head>
@@ -122,34 +180,71 @@ button{
 
 <div class="container">
 
-<h1>🚽 同時うんこチャレンジ 🚽</h1>
+<!-- 名前選択 -->
 
-<select id="playerSelect">
-    <option value="shori">🔴 しょうり</option>
-    <option value="jokura">🔵 城倉</option>
-    <option value="masai">🟡 まさい</option>
-</select>
+<div id="selectScreen">
 
-<br>
+    <h1>🚽 同時うんこチャレンジ 🚽</h1>
 
-<button class="start" onclick="startPoop()">
-🚽 開始
-</button>
+    <div class="subtitle">
+        あなたを選択
+    </div>
 
-<br>
+    <button class="nameButton redBtn"
+        onclick="selectPlayer('shori')">
 
-<button class="end" onclick="endPoop()">
-終了
-</button>
+        🔴 しょうり
 
-<div id="hiddenMessage">
-🚫 自分が🚽中の間だけ表示されます
+    </button>
+
+    <button class="nameButton blueBtn"
+        onclick="selectPlayer('jokura')">
+
+        🔵 城倉
+
+    </button>
+
+    <button class="nameButton yellowBtn"
+        onclick="selectPlayer('masai')">
+
+        🟡 まさい
+
+    </button>
+
 </div>
 
-<div id="players"></div>
+<!-- メイン -->
 
-<div id="success">
-🚨 3人同時達成！！！
+<div id="gameScreen">
+
+    <h1>🚽 同時うんこチャレンジ 🚽</h1>
+
+    <div id="me"></div>
+
+    <button class="mainButton start"
+        onclick="startPoop()">
+
+        🚽 開始
+
+    </button>
+
+    <button class="mainButton end"
+        onclick="endPoop()">
+
+        終了
+
+    </button>
+
+    <div id="hiddenMessage">
+        🚫 自分が🚽中の間だけ表示されます
+    </div>
+
+    <div id="players"></div>
+
+    <div id="success">
+        🚨 3人同時達成！！！
+    </div>
+
 </div>
 
 </div>
@@ -172,24 +267,76 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+/* プレイヤー情報 */
+
+const names = {
+    shori:"🔴 しょうり",
+    jokura:"🔵 城倉",
+    masai:"🟡 まさい"
+};
+
+let me = localStorage.getItem("toiletPlayer");
+
+/* 自分復元 */
+
+if(me){
+
+    showGame();
+
+}
+
+/* プレイヤー選択 */
+
+function selectPlayer(player){
+
+    me = player;
+
+    localStorage.setItem(
+        "toiletPlayer",
+        player
+    );
+
+    showGame();
+}
+
+/* ゲーム画面 */
+
+function showGame(){
+
+    document.getElementById(
+        "selectScreen"
+    ).style.display = "none";
+
+    document.getElementById(
+        "gameScreen"
+    ).style.display = "block";
+
+    document.getElementById(
+        "me"
+    ).innerText =
+        "あなた： " + names[me];
+}
+
 /* 開始 */
 
 function startPoop(){
 
-    const me =
-        document.getElementById("playerSelect").value;
-
     db.ref("players/" + me).set({
         active:true
     });
+
+    /* 切断時自動OFF */
+
+    db.ref("players/" + me)
+      .onDisconnect()
+      .set({
+          active:false
+      });
 }
 
 /* 終了 */
 
 function endPoop(){
-
-    const me =
-        document.getElementById("playerSelect").value;
 
     db.ref("players/" + me).set({
         active:false
@@ -202,16 +349,13 @@ db.ref("players").on("value", snapshot => {
 
     const data = snapshot.val() || {};
 
-    const me =
-        document.getElementById("playerSelect").value;
-
     const myActive =
         data[me]?.active || false;
 
     const playersDiv =
         document.getElementById("players");
 
-    const hiddenMessage =
+    const hidden =
         document.getElementById("hiddenMessage");
 
     const success =
@@ -221,33 +365,33 @@ db.ref("players").on("value", snapshot => {
 
         playersDiv.innerHTML = "";
 
-        hiddenMessage.style.display = "block";
+        hidden.style.display = "block";
 
         success.style.display = "none";
 
         return;
     }
 
-    hiddenMessage.style.display = "none";
+    hidden.style.display = "none";
 
     let html = "";
 
     let count = 0;
 
     html += makeCard(
-        "しょうり",
+        "🔴 しょうり",
         data.shori?.active,
         "red"
     );
 
     html += makeCard(
-        "城倉",
+        "🔵 城倉",
         data.jokura?.active,
         "blue"
     );
 
     html += makeCard(
-        "まさい",
+        "🟡 まさい",
         data.masai?.active,
         "yellow"
     );
@@ -259,8 +403,11 @@ db.ref("players").on("value", snapshot => {
     playersDiv.innerHTML = html;
 
     if(count >= 3){
+
         success.style.display = "block";
+
     }else{
+
         success.style.display = "none";
     }
 
@@ -275,6 +422,7 @@ function makeCard(name, active, color){
         ${active ? 'online' : 'offline'}">
 
         ${active ? '🟢' : '⚪'}
+
         ${name}
 
     </div>
