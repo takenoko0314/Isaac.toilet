@@ -1,160 +1,252 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>同時うんこチャレンジ</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<title>🚽 同時うんこチャレンジ</title>
 
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding-top: 40px;
-    }
+<style>
 
-    .player {
-      font-size: 40px;
-      margin: 20px;
-    }
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    text-align:center;
+}
 
-    .red { color: red; }
-    .blue { color: cyan; }
-    .yellow { color: gold; }
+.container{
+    padding:20px;
+}
 
-    button {
-      font-size: 24px;
-      padding: 10px 20px;
-      margin: 10px;
-    }
+h1{
+    font-size:32px;
+    margin-top:20px;
+}
 
-    #success {
-      font-size: 50px;
-      color: lime;
-      margin-top: 30px;
-      display: none;
-    }
-  </style>
+select{
+    font-size:24px;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+}
+
+button{
+    width:80%;
+    max-width:300px;
+    font-size:28px;
+    padding:20px;
+    margin:15px 0;
+    border:none;
+    border-radius:20px;
+    font-weight:bold;
+}
+
+.start{
+    background:#00c853;
+    color:white;
+}
+
+.end{
+    background:#d50000;
+    color:white;
+}
+
+.card{
+    margin:15px auto;
+    width:85%;
+    max-width:350px;
+    border-radius:20px;
+    padding:20px;
+    font-size:32px;
+    font-weight:bold;
+}
+
+.online{
+    box-shadow:0 0 20px currentColor;
+}
+
+.offline{
+    opacity:0.4;
+}
+
+.red{
+    background:#400;
+    color:#ff5252;
+}
+
+.blue{
+    background:#003;
+    color:#40c4ff;
+}
+
+.yellow{
+    background:#443300;
+    color:#ffd740;
+}
+
+#players{
+    margin-top:30px;
+}
+
+#hiddenMessage{
+    margin-top:30px;
+    font-size:22px;
+    opacity:0.7;
+}
+
+#success{
+    display:none;
+    margin-top:30px;
+    font-size:42px;
+    color:#00ff6a;
+    font-weight:bold;
+    animation:flash 1s infinite;
+}
+
+@keyframes flash{
+    0%{opacity:1;}
+    50%{opacity:0.3;}
+    100%{opacity:1;}
+}
+
+</style>
 </head>
 <body>
 
-<div id="login">
-  <h1>パスコード入力</h1>
-  <input type="password" id="pass">
-  <button onclick="enter()">入室</button>
+<div class="container">
+
+<h1>🚽 同時うんこチャレンジ 🚽</h1>
+
+<select id="playerSelect">
+    <option value="shori">🔴 しょうり</option>
+    <option value="jokura">🔵 城倉</option>
+    <option value="masai">🟡 まさい</option>
+</select>
+
+<br>
+
+<button class="start" onclick="startPoop()">
+🚽 開始
+</button>
+
+<br>
+
+<button class="end" onclick="endPoop()">
+終了
+</button>
+
+<div id="hiddenMessage">
+🚫 自分が🚽中の間だけ表示されます
 </div>
 
-<div id="app" style="display:none">
+<div id="players"></div>
 
-  <h1>🚽 同時うんこチャレンジ</h1>
-
-  <select id="name">
-    <option value="shori">しょうり</option>
-    <option value="jokura">城倉</option>
-    <option value="masai">まさい</option>
-  </select>
-
-  <br><br>
-
-  <button onclick="setStatus(true)">🚽開始</button>
-  <button onclick="setStatus(false)">終了</button>
-
-  <div id="statusArea"></div>
-
-  <div id="success">
-    🚨 3人同時達成！！！
-  </div>
+<div id="success">
+🚨 3人同時達成！！！
+</div>
 
 </div>
 
 <script>
 
-const PASSWORD = "unko123";
+let myActive = false;
 
-function enter() {
-  const p = document.getElementById("pass").value;
-
-  if (p === PASSWORD) {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-  } else {
-    alert("違います");
-  }
-}
-
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+const players = {
+    shori:{
+        name:"しょうり",
+        color:"red",
+        active:false
+    },
+    jokura:{
+        name:"城倉",
+        color:"blue",
+        active:false
+    },
+    masai:{
+        name:"まさい",
+        color:"yellow",
+        active:false
+    }
 };
 
-firebase.initializeApp(firebaseConfig);
+function startPoop(){
 
-const db = firebase.database();
+    const me =
+        document.getElementById("playerSelect").value;
 
-function setStatus(value) {
+    players[me].active = true;
 
-  const me = document.getElementById("name").value;
+    myActive = true;
 
-  db.ref("players/" + me).set({
-    pooping: value
-  });
+    render();
 }
 
-db.ref("players").on("value", snapshot => {
+function endPoop(){
 
-  const data = snapshot.val();
+    const me =
+        document.getElementById("playerSelect").value;
 
-  const me = document.getElementById("name").value;
+    players[me].active = false;
 
-  let html = "";
+    myActive = false;
 
-  let count = 0;
+    render();
+}
 
-  for (const key in data) {
+function render(){
 
-    if (data[key].pooping) {
-      count++;
+    const area =
+        document.getElementById("players");
+
+    const hidden =
+        document.getElementById("hiddenMessage");
+
+    const success =
+        document.getElementById("success");
+
+    if(!myActive){
+
+        area.innerHTML = "";
+
+        hidden.style.display = "block";
+
+        success.style.display = "none";
+
+        return;
     }
 
-  }
+    hidden.style.display = "none";
 
-  if (data[me]?.pooping) {
+    let html = "";
 
-    html += makePlayer("しょうり", data.shori?.pooping, "red");
-    html += makePlayer("城倉", data.jokura?.pooping, "blue");
-    html += makePlayer("まさい", data.masai?.pooping, "yellow");
+    let count = 0;
 
-  } else {
+    for(const key in players){
 
-    html = "<h2>🚫 自分が🚽中の間だけ表示されます</h2>";
+        const p = players[key];
 
-  }
+        if(p.active) count++;
 
-  document.getElementById("statusArea").innerHTML = html;
+        html += `
+        <div class="card ${p.color}
+            ${p.active ? 'online' : 'offline'}">
 
-  if (count >= 3) {
-    document.getElementById("success").style.display = "block";
-  } else {
-    document.getElementById("success").style.display = "none";
-  }
+            ${p.active ? '🟢' : '⚪'}
+            ${p.name}
 
-});
+        </div>
+        `;
+    }
 
-function makePlayer(name, active, color) {
+    area.innerHTML = html;
 
-  return `
-    <div class="player ${color}">
-      ${active ? "🟢" : "⚪"} ${name}
-    </div>
-  `;
+    if(count >= 3){
+        success.style.display = "block";
+    }else{
+        success.style.display = "none";
+    }
 }
 
 </script>
