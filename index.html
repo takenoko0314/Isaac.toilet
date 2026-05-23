@@ -101,6 +101,11 @@ h1{
     color:white;
 }
 
+.change{
+    background:#666;
+    color:white;
+}
+
 .card{
 
     width:88%;
@@ -241,6 +246,13 @@ h1{
 
     </button>
 
+    <button class="mainButton change"
+        onclick="changePlayer()">
+
+        👤 プレイヤー変更
+
+    </button>
+
     <div id="players"></div>
 
     <div id="success">
@@ -257,6 +269,8 @@ h1{
 
 <script>
 
+/* Firebase */
+
 const firebaseConfig = {
   apiKey: "AIzaSyAvu7p1AICFiJuzJvmT_LxFUsjp0zDwDOQ",
   authDomain: "isaac-toilet-42f74.firebaseapp.com",
@@ -271,6 +285,8 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
+/* 名前 */
+
 const names = {
     shori:"🔴 しょうり",
     jokura:"🔵 城倉",
@@ -279,9 +295,13 @@ const names = {
 
 let me = localStorage.getItem("toiletPlayer");
 
+/* 初期表示 */
+
 if(me){
     showGame();
 }
+
+/* 選択 */
 
 function selectPlayer(player){
 
@@ -294,6 +314,8 @@ function selectPlayer(player){
 
     showGame();
 }
+
+/* 画面切替 */
 
 function showGame(){
 
@@ -311,6 +333,21 @@ function showGame(){
         "あなた： " + names[me];
 }
 
+/* プレイヤー変更 */
+
+function changePlayer(){
+
+    endPoop();
+
+    localStorage.removeItem(
+        "toiletPlayer"
+    );
+
+    location.reload();
+}
+
+/* 開始 */
+
 function startPoop(){
 
     db.ref("players/" + me).set({
@@ -324,14 +361,22 @@ function startPoop(){
       });
 }
 
+/* 終了 */
+
 function endPoop(){
+
+    if(!me) return;
 
     db.ref("players/" + me).set({
         active:false
     });
 }
 
+/* リアルタイム監視 */
+
 db.ref("players").on("value", snapshot => {
+
+    if(!me) return;
 
     const data = snapshot.val() || {};
 
@@ -388,6 +433,8 @@ db.ref("players").on("value", snapshot => {
     }
 
 });
+
+/* カード */
 
 function makeCard(name, active, color){
 
