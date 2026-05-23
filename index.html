@@ -36,6 +36,10 @@ h1{
     font-size:20px;
 }
 
+#gameScreen{
+    display:none;
+}
+
 .nameButton{
 
     width:85%;
@@ -135,18 +139,8 @@ h1{
     color:#ffd740;
 }
 
-#gameScreen{
-    display:none;
-}
-
 #players{
     margin-top:30px;
-}
-
-#hiddenMessage{
-    margin-top:30px;
-    font-size:24px;
-    opacity:0.7;
 }
 
 #success{
@@ -247,10 +241,6 @@ h1{
 
     </button>
 
-    <div id="hiddenMessage">
-        🚫 自分が🚽中の間だけ表示されます
-    </div>
-
     <div id="players"></div>
 
     <div id="success">
@@ -267,8 +257,6 @@ h1{
 
 <script>
 
-/* Firebase */
-
 const firebaseConfig = {
   apiKey: "AIzaSyAvu7p1AICFiJuzJvmT_LxFUsjp0zDwDOQ",
   authDomain: "isaac-toilet-42f74.firebaseapp.com",
@@ -283,8 +271,6 @@ firebase.initializeApp(firebaseConfig);
 
 const db = firebase.database();
 
-/* プレイヤー名 */
-
 const names = {
     shori:"🔴 しょうり",
     jokura:"🔵 城倉",
@@ -293,13 +279,9 @@ const names = {
 
 let me = localStorage.getItem("toiletPlayer");
 
-/* 自分復元 */
-
 if(me){
     showGame();
 }
-
-/* プレイヤー選択 */
 
 function selectPlayer(player){
 
@@ -312,8 +294,6 @@ function selectPlayer(player){
 
     showGame();
 }
-
-/* 画面切替 */
 
 function showGame(){
 
@@ -331,8 +311,6 @@ function showGame(){
         "あなた： " + names[me];
 }
 
-/* 開始 */
-
 function startPoop(){
 
     db.ref("players/" + me).set({
@@ -346,16 +324,12 @@ function startPoop(){
       });
 }
 
-/* 終了 */
-
 function endPoop(){
 
     db.ref("players/" + me).set({
         active:false
     });
 }
-
-/* リアルタイム監視 */
 
 db.ref("players").on("value", snapshot => {
 
@@ -367,9 +341,6 @@ db.ref("players").on("value", snapshot => {
     const playersDiv =
         document.getElementById("players");
 
-    const hidden =
-        document.getElementById("hiddenMessage");
-
     const success =
         document.getElementById("success");
 
@@ -377,14 +348,10 @@ db.ref("players").on("value", snapshot => {
 
         playersDiv.innerHTML = "";
 
-        hidden.style.display = "block";
-
         success.style.display = "none";
 
         return;
     }
-
-    hidden.style.display = "none";
 
     let html = "";
 
@@ -415,17 +382,12 @@ db.ref("players").on("value", snapshot => {
     playersDiv.innerHTML = html;
 
     if(count >= 3){
-
         success.style.display = "block";
-
     }else{
-
         success.style.display = "none";
     }
 
 });
-
-/* カード生成 */
 
 function makeCard(name, active, color){
 
