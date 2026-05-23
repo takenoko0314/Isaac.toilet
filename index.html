@@ -114,6 +114,27 @@ h1{
 
     font-size:34px;
     font-weight:bold;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:16px;
+}
+
+.status{
+
+    width:50px;
+
+    text-align:right;
+
+    flex-shrink:0;
+}
+
+.name{
+
+    width:140px;
+
+    text-align:left;
 }
 
 .online{
@@ -436,9 +457,13 @@ function makeCard(name, active, color){
     <div class="card ${color}
         ${active ? 'online' : 'offline'}">
 
-        ${active ? '🟢' : '⚪'}
+        <div class="status">
+            ${active ? '🟢' : '⚪'}
+        </div>
 
-        ${name}
+        <div class="name">
+            ${name}
+        </div>
 
     </div>
     `;
