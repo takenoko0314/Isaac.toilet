@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>同時うんこチャレンジ</title>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding-top: 40px;
+    }
+
+    .player {
+      font-size: 40px;
+      margin: 20px;
+    }
+
+    .red { color: red; }
+    .blue { color: cyan; }
+    .yellow { color: gold; }
+
+    button {
+      font-size: 24px;
+      padding: 10px 20px;
+      margin: 10px;
+    }
+
+    #success {
+      font-size: 50px;
+      color: lime;
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="login">
+  <h1>パスコード入力</h1>
+  <input type="password" id="pass">
+  <button onclick="enter()">入室</button>
+</div>
+
+<div id="app" style="display:none">
+
+  <h1>🚽 同時うんこチャレンジ</h1>
+
+  <select id="name">
+    <option value="shori">しょうり</option>
+    <option value="jokura">城倉</option>
+    <option value="masai">まさい</option>
+  </select>
+
+  <br><br>
+
+  <button onclick="setStatus(true)">🚽開始</button>
+  <button onclick="setStatus(false)">終了</button>
+
+  <div id="statusArea"></div>
+
+  <div id="success">
+    🚨 3人同時達成！！！
+  </div>
+
+</div>
+
+<script>
+
+const PASSWORD = "unko123";
+
+function enter() {
+  const p = document.getElementById("pass").value;
+
+  if (p === PASSWORD) {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+  } else {
+    alert("違います");
+  }
+}
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+function setStatus(value) {
+
+  const me = document.getElementById("name").value;
+
+  db.ref("players/" + me).set({
+    pooping: value
+  });
+}
+
+db.ref("players").on("value", snapshot => {
+
+  const data = snapshot.val();
+
+  const me = document.getElementById("name").value;
+
+  let html = "";
+
+  let count = 0;
+
+  for (const key in data) {
+
+    if (data[key].pooping) {
+      count++;
+    }
+
+  }
+
+  if (data[me]?.pooping) {
+
+    html += makePlayer("しょうり", data.shori?.pooping, "red");
+    html += makePlayer("城倉", data.jokura?.pooping, "blue");
+    html += makePlayer("まさい", data.masai?.pooping, "yellow");
+
+  } else {
+
+    html = "<h2>🚫 自分が🚽中の間だけ表示されます</h2>";
+
+  }
+
+  document.getElementById("statusArea").innerHTML = html;
+
+  if (count >= 3) {
+    document.getElementById("success").style.display = "block";
+  } else {
+    document.getElementById("success").style.display = "none";
+  }
+
+});
+
+function makePlayer(name, active, color) {
+
+  return `
+    <div class="player ${color}">
+      ${active ? "🟢" : "⚪"} ${name}
+    </div>
+  `;
+}
+
+</script>
+
+</body>
+</html>
